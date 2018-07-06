@@ -2,8 +2,6 @@
     <div class="home-view">
         <div class="home-scroll">
             <search-bar></search-bar>
-            <!--<pull-to :bottom-load-method="loadmore" :bottom-config="scrollConfig">
-            </pull-to>-->
             <div id="slider">
                 <swiper :options="swiperOption">
                     <swiper-slide v-for="(item,index) in swiperList" :key="item.pic"><img :src="item.pic" class="banner-item" alt=""></swiper-slide>
@@ -67,7 +65,6 @@
         methods: {
             loadData(callback) {
                 this.$http.get(api.getPlayListByWhere('全部', 'hot', this.offset, true, 9)).then((res) => {
-                    console.log("music", res.body)
                     this.offset += 16
                     res.body.playlists.forEach((item, index) => {
                         this.music.push(item)
@@ -84,7 +81,6 @@
             },
             loadMv() {
                 this.$http.get(api.getMv()).then((res) => {
-                    console.log("mv", res.body)
                     for(let i = 0; i < 5; i++) {
                         this.mv.push(res.body.data[i])
                     }
@@ -94,7 +90,6 @@
             },
             loadNewMusic() {
                 this.$http.get(api.getNewCd(0, 9, 'all')).then((res) => {
-                    console.log("newcd", res.body)
                     this.cd = res.body.albums
                 }).catch((err) => {
                     console.log(err)
@@ -102,7 +97,6 @@
             },
             loadRadio() {
                 this.$http.get(api.getRadioStation()).then((res) => {
-                    console.log("loadRadio", res.body)
                     for(let i = 0; i < 9; i++) {
                         this.radios.push(res.body.djRadios[i])
                     }

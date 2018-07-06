@@ -22,7 +22,6 @@
                 <grid-item state="album" :item="item" :key="item.id" v-for="(item,index) in list" width="3.6rem" height="3.6rem"></grid-item>
             </div>
         </pull-to>
-        <loading title="loading"></loading>
     </div>
 </template>
 <style>

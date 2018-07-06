@@ -16,7 +16,7 @@
                 albumid: null,
                 albumlist: [],
                 albuminfo: {
-                    creator:{}
+                    creator: {}
                 }
             }
         },
@@ -27,6 +27,10 @@
         beforeRouteEnter: (to, from, next) => {
             next(vm => {
                 if(parseInt(to.params.id) !== parseInt(vm.albumid)) {
+                    vm.albumlist = []
+                    vm.albuminfo = {
+                        creator: {}
+                    }
                     vm.albumid = to.params.id
                     vm.loadData(to.params.id)
                 }
@@ -38,21 +42,16 @@
         methods: {
             loadData(id) {
                 this.$http.get(api.getalbumlist(id)).then((res) => {
-                    console.log("list-success", res) 
                     let {
                         tracks: list,
                         ...info
                     } = res.body.result
                     this.albuminfo = info
                     this.albumlist = list
-                    console.log(this.albumlist, this.albuminfo)
                 }).catch((err) => {
-                    console.log("albumlist-err",err)
+                    console.log("albumlist-err", err)
                 })
             }
-        },
-        beforeDestroy(e) {
-            console.log("beforeDestroy", e)
         },
         filters: {
 
@@ -61,7 +60,7 @@
 </script>
 
 <style>
-.album-view{
-    height:auto;
-}
+    .album-view {
+        height: auto;
+    }
 </style>

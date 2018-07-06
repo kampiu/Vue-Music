@@ -19,6 +19,7 @@ export default new Router({
 		name: 'index',
 		path: '/',
 		component: MusicTabbarView,
+		redirect:'/home',
 		children: [{
 			name: 'home',
 			path: 'home',

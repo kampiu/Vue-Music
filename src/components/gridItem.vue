@@ -1,8 +1,8 @@
 <template>
     <div class="box-grid-item" :style="{width:width}">
-        <router-link :to="state == 'album' ? '/album/' + item.id : '###'">
+        <router-link :to="state == 'album' || state == 'ranking'? '/album/' + item.id : '###'">
             <div class="box-grid-item-img" :style="{height: height}">
-                <img :src=" state == 'album' ? item.coverImgUrl : item.picUrl" class="load-img" @load="imgLoad" alt="" />
+                <img :src=" state == 'album' || state == 'ranking'? item.coverImgUrl + '?param=140y140' : item.picUrl + '?param=140y140'" class="load-img" @load="imgLoad" alt="" />
                 <img class="img-default" src="../../static/image/default.jpg" alt="" />
                 <div class="box-grid-item-depict" v-if="state == 'album'">{{item.playCount | formatCount}}</div>
             </div>

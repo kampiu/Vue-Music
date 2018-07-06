@@ -1,6 +1,5 @@
-//const _baseUrl = 'http://musicapi.duapp.com/api.php'
-//const _baseUrl2 = 'https://api.imjad.cn/cloudmusic/'
-const _baseUrl = "http://localhost:3002/api"
+//const _baseUrl = "http://localhost:3002/api"
+const _baseUrl = "https://music.billson.club/api"
 
 export default {
 	getPlayListByWhere(cat, order, offset, total, limit) {
@@ -24,22 +23,13 @@ export default {
 	getSearch(keywords){
 		return _baseUrl + '/search/suggest?keywords=' + keywords
 	},
-	
-	getLrc(id) {
-		return _baseUrl + '/lyric?id=' + id
+	getRanking(){
+		return _baseUrl + '/ranking'
 	},
 	getSong(id) {
 		return _baseUrl + "/music/url?id=" + id
 	},
-	search(type, keywords, offset, limit) {
-		return _baseUrl + "/search?type=" + type + "&keywords=" + keywords + "&limit=" + limit + "&offset=" + offset
-	},
-	getTime(time) {
-		var o = parseInt(t),
-			fen = o % 60;
-		if(fen < 10) {
-			fen = "0" + fen;
-		}
-		return((o - (o % 60)) / 60) + ":" + fen;
-	},
+	getLyric(id){
+		return _baseUrl + '/lyric?id=' + id
+	}
 }

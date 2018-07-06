@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './api'
-import Axios from './http.js'
+import Axios from './http'
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -11,25 +11,29 @@ const store = new Vuex.Store({
 			'name': '歌曲名称',
 			'singer': '演唱者',
 			'albumPic': '/static/player-bar.png',
-			'location': '',
+			'songUrl': '',
 			'album': ''
 		},
 		lyric: '',
-		currentIndex: 0, // 当前播放的歌曲位置
-		playing: false, // 是否正在播放
-		loading: false, // 是否正在加载中
-		showDetail: false,
-		songList: [], // 播放列表
-		currentTime: 0,
-		tmpCurrentTime: 0,
-		durationTime: 0,
-		bufferedTime: 0,
-		change: false // 判断是更改的时间还是播放的时间
+		currentIndex: 0, 
+		playing: false, 
+		loading: false, 
+		songList: [], 
+		randList: [], 
+		currentTime: 0, 
+		durationTime: 0, 
+		change: false, 
+		router: "home", 
+		mode: 0, 
 	},
 	getters: {
 		audio: state => state.audio,
 		playing: state => state.playing,
 		loading: state => state.loading,
+		router: state => state.router,
+		lyric: state => state.lyric,
+		mode: state => state.mode,
+
 		showDetail: state => state.showDetail,
 		durationTime: state => state.durationTime,
 		currentIndex: state => state.currentIndex,
@@ -52,144 +56,197 @@ const store = new Vuex.Store({
 		pause(state) {
 			state.playing = false
 		},
-		toggleDetail(state) {
-			state.showDetail = !state.showDetail
-		},
-		setAudio(state) {
-			state.audio = state.songList[state.currentIndex - 1]
-		},
-		setAudioIndex(state, index) {
-			state.audio = state.songList[index]
-			state.currentIndex = index + 1
-		},
-		initAudio(state) {
-			let len = localStorage.length;
-			for(let i = 0; i < len; i++) {
-				if(localStorage.key(i).indexOf("acmusic_") === 0) {
-					state.songList.push(JSON.parse(localStorage.getItem(localStorage.key(i))))
+		initAudio(state, song) {
+			state.audio = song
+			state.playing = true
+			state.currentIndex = state.songList.length
+			state.songList.forEach((item, index) => {
+				if(item.id === state.audio.id) {
+					state.currentIndex = index
+					return
 				}
-			}
+			})
 		},
-		removeAudio(state, id) {
-			let len = localStorage.length - 1,
-				i = 0,
-				lens = state.songList.length,
-				o = 0
-			for(i = 0; i < len; i++) {
-				var key = localStorage.key(i)
-				if(id == JSON.parse(localStorage.getItem(key)).id) {
-					localStorage.removeItem(localStorage.key(i))
-					break
-				}
-			}
-			for(o = 0; o < lens; o++) {
-				if(id == state.songList[o].id) {
-					if(state.currentIndex >= (o + 1)) {
-						state.currentIndex = (state.currentIndex == 1)?(state.songList.length - 1):(state.currentIndex - 1)
-						state.audio = (o == 0)?(state.songList[state.currentIndex]):(state.songList[state.currentIndex - 1])
-					}
-					state.songList.splice(o, 1)
-					break;
-				}
-			}
-			if(state.songList.length === 0) {
-				state.audio = {
-					'id': 0,
-					'name': '歌曲名称',
-					'singer': '演唱者',
-					'albumPic': '/static/player-bar.png',
-					'location': '',
-					'album': ''
-				}
-				state.playing = false
-			}
+		initAudioByRand(state, song) {
+			state.audio = song
+			state.playing = true
 		},
-		setChange(state, flag) {
-			state.change = flag
-		},
-		setLocation(state, location) {
-			state.audio.location = location
+		initDurationTime(state, time) {
+			state.durationTime = time
 		},
 		updateCurrentTime(state, time) {
 			state.currentTime = time
 		},
-		updateDurationTime(state, time) {
-			state.durationTime = time
+		updateRouter(state, router) {
+			state.router = router
 		},
-		updateBufferedTime(state, time) {
-			state.bufferedTime = time
-		},
-		changeTime(state, time) {
-			state.tmpCurrentTime = time
-		},
-		openLoading(state) {
-			state.loading = true
-		},
-		closeLoading(state) {
-			state.loading = false
-		},
-		resetAudio(state) {
-			state.currentTime = 0
-		},
-		playNext(state) { // 播放下一曲
-			state.currentIndex++
-				if(state.currentIndex > state.songList.length) {
-					state.currentIndex = 1
-				}
-			state.audio = state.songList[state.currentIndex - 1]
-		},
-		playPrev(state) { // 播放上一曲
-			state.currentIndex--
-				if(state.currentIndex < 1) {
-					state.currentIndex = state.songList.length
-				}
-			state.audio = state.songList[state.currentIndex - 1]
+		initSongList(state) {
+			state.songList = localStorage.getItem("billson_vue_music") ? JSON.parse(localStorage.getItem("billson_vue_music")) : []
 		},
 		addToList(state, songs) {
-			Axios.get(api.getSong(songs.id)).then(res => {
-				var url = res.data.data[0].url
-				songs.location = url
-				if(songs.location != undefined) {
-					var items = Array.prototype.concat.call(songs)
-					items.forEach(item => {
-						var flag = false
-						state.songList.forEach(function(element, index) { // 检测歌曲重复
-							if(element.id === item.id) {
-								flag = true
-								state.currentIndex = index + 1
-							}
-						})
-						if(!flag) {
-							state.songList.push(item)
-							state.currentIndex = state.songList.length
-							localStorage.setItem("acmusic_" + state.songList.length, JSON.stringify(songs))
-						}
-					})
-				}
-			})
+			state.songList.push(songs)
+			localStorage.setItem("billson_vue_music", JSON.stringify(state.songList))
 		},
 		setLrc(state, lrc) {
 			state.lyric = lrc
+		},
+		changeMode(state) {
+			state.mode = (++state.mode >= 3 ? 0 : state.mode++)
+			if(state.mode === 2) {
+				state.randList = state.songList.slice().sort(function() {
+					return 0.5 - Math.random()
+				})
+				if(state.playing && state.currentIndex < state.songList.length) {
+					state.randList.forEach((item, index) => {
+						if(item.id === state.audio.id) {
+							state.currentIndex = index
+							return
+						}
+					})
+				}
+			} else if(state.mode === 0) {
+				if(state.playing && state.currentIndex < state.songList.length) {
+					state.songList.forEach((item, index) => {
+						if(item.id === state.audio.id) {
+							state.currentIndex = index
+							return
+						}
+					})
+				}
+			}
+		},
+		resetAudio(state) {
+			state.audio = {
+				'id': 0,
+				'name': '歌曲名称',
+				'singer': '演唱者',
+				'albumPic': '/static/player-bar.png',
+				'songUrl': '',
+				'album': ''
+			}
+			state.currentIndex = 0
+			sttae.currentTime = 0
+			state.lyric = ""
+			state.playig = false
 		}
+
 	},
-	// 异步的数据操作
 	actions: {
-		getSong({
+		initSong({
 			commit,
 			state
-		}, id) {
-			commit('openLoading')
-			Axios.get(api.getSong(id)).then(res => {
-					// 统一数据模型，方便后台接口的改变
-					var url = res.data.data[0].url
-					commit('setAudio')
-					commit('setLocation', url)
-				})
-				.catch((error) => { // 错误处理
-					console.log(error)
-					window.alert('获取歌曲信息出错！')
-				})
+		}, song) {
+			getSongUrl(song).then(data => {
+				commit('initAudio', data.song)
+				commit('setLrc', data.lyric)
+			}).catch(err => {
+				console.log("版权问题，获取歌曲失败!")
+			})
+		},
+		nextSong({
+			commit,
+			state
+		}) {
+			let len, audio
+			switch(state.mode) {
+				case 0:
+					len = ((state.currentIndex === state.songList.length - 1) ? 0 : state.currentIndex++)
+					audio = state.songList[len]
+					break
+				case 1:
+					len = state.currentIndex
+					audio = state.audio
+					break
+				case 2:
+					len = ((state.currentIndex++ === state.songList.length - 1) ? 0 : state.currentIndex++)
+					audio = state.randList[len]
+					break
+				default:
+					len = ((state.currentIndex === state.songList.length - 1) ? 0 : state.currentIndex++)
+					audio = state.songList[len]
+					break
+			}
+			getSongUrl(audio).then(data => {
+				commit('initAudioByRand', data.song)
+				commit('setLrc', data.lyric)
+			}).catch(err => {
+				console.log("触发下一首歌曲，因版权问题，无法播放")
+			})
+		},
+		prevSong({
+			commit,
+			state
+		}) {
+			let len, audio
+			switch(state.mode) {
+				case 0:
+					len = ((state.currentIndex === 0) ? state.songList.length - 1 : state.currentIndex--)
+					audio = state.songList[len]
+					break
+				case 1:
+					len = state.currentIndex
+					audio = state.audio
+					break
+				case 2:
+					len = ((state.currentIndex === 0) ? state.songList.length - 1 : state.currentIndex--)
+					audio = state.randList[len]
+					break
+				default:
+					len = ((state.currentIndex === 0) ? state.songList.length - 1 : state.currentIndex--)
+					audio = state.songList[len]
+					break
+			}
+			getSongUrl(audio).then(data => {
+				commit('initAudioByRand', data.song)
+				commit('setLrc', data.lyric)
+			}).catch(err => {
+				console.log("触发下一首歌曲，因版权问题，无法播放")
+			})
+		},
+		removeSong({
+			commit,
+			state
+		}, song) {
+			state.songList.forEach((item, index) => {
+				if(item.id === song.id) {
+					if(state.currentIndex > index) { 
+						state.currentIndex -= 1
+					} else if(state.currentIndex === index) {
+						if(state.songList.length !== 1) {
+							state.currentIndex -= 1
+							getSongUrl(state.songList[index - 1]).then(data => {
+								commit('initAudio', data.song)
+								commit('setLrc', data.lyric)
+							})
+						} else {
+							commit("resetAudio")
+						}
+					}
+					state.songList.splice(index, 1)
+					localStorage.setItem("billson_vue_music", JSON.stringify(state.songList))
+					return
+				}
+			})
 		}
 	}
 })
+
+const getSongUrl = (data) => {
+	return new Promise((resolve, reject) => {
+		Axios.get(api.getSong(data.id)).then(res => {
+				data.songUrl = res.data.data[0].url
+				Axios.get(api.getLyric(data.id)).then(lry => {
+					return resolve({
+						song: data,
+						lyric: lry.data.lrc.lyric
+					})
+				})
+			})
+			.catch((error) => {
+				console.log(error)
+				return reject(data)
+			})
+	})
+}
+
 export default store

@@ -22,6 +22,7 @@ import typeSelect from './components/typeSelect'
 
 //tool
 import loading from './components/loading'
+import listPut from './components/listPut'
 
 Vue.use(listHead)
 Vue.use(listNavBar)
@@ -35,9 +36,8 @@ Vue.use(searchBar)
 Vue.use(navBar)
 Vue.use(typeSelect)
 Vue.use(loading)
+Vue.use(listPut)
 Vue.use(PullTo)
-
-
 
 //开启debug模式
 Vue.config.debug = true
@@ -56,8 +56,8 @@ const app = new Vue({
 		App
 	},
 	watch: {
-
+		$route(to, from) {
+			store.commit("updateRouter",to.name)
+		}
 	}
 })
-
-
